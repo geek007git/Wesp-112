@@ -1,47 +1,62 @@
-import React from "react";
+import React, { useState } from "react";
 import "../styles/RegiserStyles.css";
 import { Form, Input, message } from "antd";
-import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { Link } from "react-router-dom";
+import http, { apiError } from "../api/http";
 
 const Login = () => {
-  const navigate = useNavigate();
-  //form handler
+  const [submitting, setSubmitting] = useState(false);
+
   const onfinishHandler = async (values) => {
+    setSubmitting(true);
     try {
-      const res = await axios.post("/api/v1/user/login", values);
-      if (res.data.success) {
-        localStorage.setItem("token", res.data.token);
-        message.success("Login Successfully");
-        navigate("/");
-      } else {
-        message.error(res.data.message);
-      }
+      const res = await http.post("/user/login", values);
+      localStorage.setItem("token", res.data.token);
+      message.success("Logged in successfully");
+      // full reload so the user context is built from the new token
+      window.location.href = "/";
     } catch (error) {
-      console.log(error);
-      message.error("something went wrong");
+      message.error(apiError(error));
+    } finally {
+      setSubmitting(false);
     }
   };
+
   return (
-    <div className="form-container ">
+    <div className="form-container">
       <Form
         layout="vertical"
         onFinish={onfinishHandler}
         className="register-form"
       >
-        <h3 className="text-center">Login From</h3>
+        <h3 className="text-center">Login</h3>
 
-        <Form.Item label="Email" name="email">
-          <Input type="email" required />
+        <Form.Item
+          label="Email"
+          name="email"
+          rules={[
+            { required: true, message: "email is required" },
+            { type: "email", message: "enter a valid email" },
+          ]}
+        >
+          <Input type="email" />
         </Form.Item>
-        <Form.Item label="Password" name="password">
-          <Input type="password" required />
+        <Form.Item
+          label="Password"
+          name="password"
+          rules={[{ required: true, message: "password is required" }]}
+        >
+          <Input.Password />
         </Form.Item>
         <Link to="/register" className="m-2">
-          Not a user Register here
+          Not a user? Register here
         </Link>
-        <button className="btn btn-primary" type="submit">
-          Login
+        <button
+          className="btn btn-primary w-100 mt-3"
+          type="submit"
+          disabled={submitting}
+        >
+          {submitting ? "Logging in..." : "Login"}
         </button>
       </Form>
     </div>

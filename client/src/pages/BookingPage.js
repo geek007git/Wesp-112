@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { DatePicker, TimePicker, message, Spin } from "antd";
 import { useParams } from "react-router-dom";
 import dayjs from "dayjs";
-import http from "../api/http";
+import http, { apiError } from "../api/http";
 
 const DATE_FORMAT = "DD-MM-YYYY";
 const TIME_FORMAT = "HH:mm";
@@ -24,7 +24,7 @@ const BookingPage = () => {
         message.error(res.data.message);
       }
     } catch (error) {
-      message.error("Unable to load doctor");
+      message.error(apiError(error));
     } finally {
       setLoading(false);
     }
@@ -42,19 +42,19 @@ const BookingPage = () => {
       return message.error("Pick a date and time first");
     }
     try {
-      const res = await http.post("/user/booking-availbility", {
+      const res = await http.post("/user/booking-availability", {
         doctorId,
         date,
         time,
       });
-      setIsAvailable(res.data.success);
-      if (res.data.success) {
+      setIsAvailable(res.data.available);
+      if (res.data.available) {
         message.success(res.data.message);
       } else {
         message.error(res.data.message);
       }
     } catch (error) {
-      message.error("Something Went Wrong");
+      message.error(apiError(error));
     }
   };
 
@@ -75,7 +75,7 @@ const BookingPage = () => {
         message.error(res.data.message);
       }
     } catch (error) {
-      message.error("Something Went Wrong");
+      message.error(apiError(error));
     }
   };
 

@@ -1,7 +1,7 @@
 import React from "react";
 import { message } from "antd";
 import { useNavigate } from "react-router-dom";
-import http from "../api/http";
+import http, { apiError } from "../api/http";
 import DoctorForm from "../components/DoctorForm";
 import { useUser } from "../context/UserContext";
 
@@ -20,7 +20,7 @@ const ApplyDoctor = () => {
         message.error(res.data.message);
       }
     } catch (error) {
-      message.error("Something Went Wrong");
+      message.error(apiError(error));
     }
   };
 

@@ -1,7 +1,7 @@
 import React from "react";
 import { Tabs, message } from "antd";
 import { useNavigate } from "react-router-dom";
-import http from "../api/http";
+import http, { apiError } from "../api/http";
 import { useUser } from "../context/UserContext";
 
 const Notification = () => {
@@ -18,7 +18,7 @@ const Notification = () => {
         message.error(res.data.message);
       }
     } catch (error) {
-      message.error("Something Went Wrong");
+      message.error(apiError(error));
     }
   };
 
@@ -32,20 +32,20 @@ const Notification = () => {
         message.error(res.data.message);
       }
     } catch (error) {
-      message.error("Something Went Wrong");
+      message.error(apiError(error));
     }
   };
 
   const goTo = (item) => {
     const path =
-      (item.data && item.data.onClickPath) || item.onClickPath || item.onCLickPath;
+      item.onClickPath;
     if (path) {
       navigate(path);
     }
   };
 
-  const unread = (user && user.notification) || [];
-  const read = (user && user.seennotification) || [];
+  const unread = (user && user.notifications) || [];
+  const read = (user && user.seenNotifications) || [];
 
   return (
     <>

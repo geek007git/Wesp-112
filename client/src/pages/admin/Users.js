@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Table, Tag, message } from "antd";
-import http from "../../api/http";
+import http, { apiError } from "../../api/http";
 
 const Users = () => {
   const [users, setUsers] = useState([]);
@@ -14,7 +14,7 @@ const Users = () => {
           setUsers(res.data.data);
         }
       } catch (error) {
-        message.error("Unable to load users");
+        message.error(apiError(error));
       } finally {
         setLoading(false);
       }

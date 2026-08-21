@@ -1,4 +1,5 @@
 import axios from "axios";
+import apiError from "./apiError";
 
 // every request carries the JWT; a 401 means the token is gone or stale
 const http = axios.create({ baseURL: "/api/v1" });
@@ -23,5 +24,7 @@ http.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+export { apiError };
 
 export default http;

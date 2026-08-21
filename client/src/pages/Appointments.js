@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Table, Tag, message } from "antd";
-import http from "../api/http";
+import http, { apiError } from "../api/http";
 
 const statusColor = {
   pending: "gold",
@@ -20,7 +20,7 @@ const Appointments = () => {
           setAppointments(res.data.data);
         }
       } catch (error) {
-        message.error("Unable to load appointments");
+        message.error(apiError(error));
       } finally {
         setLoading(false);
       }

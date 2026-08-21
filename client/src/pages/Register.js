@@ -1,53 +1,73 @@
-import React from "react";
+import React, { useState } from "react";
 import "../styles/RegiserStyles.css";
 import { Form, Input, message } from "antd";
-import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import http, { apiError } from "../api/http";
+
 const Register = () => {
   const navigate = useNavigate();
+  const [submitting, setSubmitting] = useState(false);
 
-  //form handler
   const onfinishHandler = async (values) => {
+    setSubmitting(true);
     try {
-      const res = await axios.post("/api/v1/user/register", values);
-      if (res.data.success) {
-        message.success("Register Successfully!");
-        navigate("/login");
-      } else {
-        message.error(res.data.message);
-      }
+      await http.post("/user/register", values);
+      message.success("Registered successfully, please log in");
+      navigate("/login");
     } catch (error) {
-      console.log(error);
-      message.error("Something Went Wrong");
+      message.error(apiError(error));
+    } finally {
+      setSubmitting(false);
     }
   };
+
   return (
-    <>
-      <div className="form-container ">
-        <Form
-          layout="vertical"
-          onFinish={onfinishHandler}
-          className="register-form"
+    <div className="form-container">
+      <Form
+        layout="vertical"
+        onFinish={onfinishHandler}
+        className="register-form"
+      >
+        <h3 className="text-center">Register</h3>
+        <Form.Item
+          label="Name"
+          name="name"
+          rules={[{ required: true, message: "name is required" }]}
         >
-          <h3 className="text-center">Register From</h3>
-          <Form.Item label="Name" name="name">
-            <Input type="text" required />
-          </Form.Item>
-          <Form.Item label="Email" name="email">
-            <Input type="email" required />
-          </Form.Item>
-          <Form.Item label="Password" name="password">
-            <Input type="password" required />
-          </Form.Item>
-          <Link to="/login" className="m-2">
-            Already user login here
-          </Link>
-          <button className="btn btn-primary" type="submit">
-            Register
-          </button>
-        </Form>
-      </div>
-    </>
+          <Input type="text" />
+        </Form.Item>
+        <Form.Item
+          label="Email"
+          name="email"
+          rules={[
+            { required: true, message: "email is required" },
+            { type: "email", message: "enter a valid email" },
+          ]}
+        >
+          <Input type="email" />
+        </Form.Item>
+        <Form.Item
+          label="Password"
+          name="password"
+          rules={[
+            { required: true, message: "password is required" },
+            { min: 6, message: "password must be at least 6 characters" },
+          ]}
+        >
+          <Input.Password />
+        </Form.Item>
+        <Link to="/login" className="m-2">
+          Already registered? Login here
+        </Link>
+        <button
+          className="btn btn-primary w-100 mt-3"
+          type="submit"
+          disabled={submitting}
+        >
+          {submitting ? "Creating account..." : "Register"}
+        </button>
+      </Form>
+    </div>
   );
 };
 

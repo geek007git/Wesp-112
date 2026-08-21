@@ -5,194 +5,167 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { parseSlot, isWithinTimings, overlapWindow } = require("../utils/slots");
 
-//register callback
-const registerController = async (req, res) => {
+const registerController = async (req, res, next) => {
   try {
-    const exisitingUser = await userModel.findOne({ email: req.body.email });
-    if (exisitingUser) {
+    const email = String(req.body.email).toLowerCase().trim();
+    const existingUser = await userModel.findOne({ email });
+    if (existingUser) {
       return res
-        .status(200)
-        .send({ message: "User Already Exist", success: false });
+        .status(409)
+        .send({ success: false, message: "An account with that email already exists" });
     }
-    const password = req.body.password;
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    const newUser = new userModel({
+    const hashedPassword = await bcrypt.hash(req.body.password, salt);
+    await new userModel({
       name: req.body.name,
-      email: req.body.email,
+      email,
       password: hashedPassword,
-    });
-    await newUser.save();
-    res.status(201).send({ message: "Register Sucessfully", success: true });
+    }).save();
+    res
+      .status(201)
+      .send({ success: true, message: "Registered successfully" });
   } catch (error) {
-    console.log(error);
-    res.status(500).send({
-      success: false,
-      message: `Register Controller ${error.message}`,
-    });
+    next(error);
   }
 };
 
-// login callback
-const loginController = async (req, res) => {
+const loginController = async (req, res, next) => {
   try {
-    const user = await userModel.findOne({ email: req.body.email });
-    if (!user) {
-      return res
-        .status(200)
-        .send({ message: "user not found", success: false });
-    }
-    const isMatch = await bcrypt.compare(req.body.password, user.password);
+    const email = String(req.body.email).toLowerCase().trim();
+    const user = await userModel.findOne({ email });
+    // same response for unknown email and wrong password, so the endpoint
+    // cannot be used to discover which accounts exist
+    const isMatch =
+      user && (await bcrypt.compare(req.body.password, user.password));
     if (!isMatch) {
       return res
-        .status(200)
-        .send({ message: "Invlid EMail or Password", success: false });
+        .status(401)
+        .send({ success: false, message: "Invalid email or password" });
     }
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "1d",
     });
-    res.status(200).send({ message: "Login Success", success: true, token });
+    res
+      .status(200)
+      .send({ success: true, message: "Login successful", token });
   } catch (error) {
-    console.log(error);
-    res.status(500).send({ message: `Error in Login CTRL ${error.message}` });
+    next(error);
   }
 };
 
-// current user
-const authController = async (req, res) => {
+const authController = async (req, res, next) => {
   try {
     const user = await userModel.findById(req.userId).select("-password");
     if (!user) {
       return res
-        .status(200)
-        .send({ message: "user not found", success: false });
+        .status(404)
+        .send({ success: false, message: "User not found" });
     }
     res.status(200).send({ success: true, data: user });
   } catch (error) {
-    console.log(error);
-    res.status(500).send({ message: "auth error", success: false, error });
+    next(error);
   }
 };
 
 // apply to become a doctor -> notifies every admin
-const applyDoctorController = async (req, res) => {
+const applyDoctorController = async (req, res, next) => {
   try {
     const existing = await doctorModel.findOne({ userId: req.userId });
     if (existing) {
-      return res.status(200).send({
+      return res.status(409).send({
         success: false,
-        message: `You already applied, current status: ${existing.status}`,
+        message: `You have already applied. Current status: ${existing.status}`,
       });
     }
-    const newDoctor = await doctorModel({
+    const newDoctor = await new doctorModel({
       ...req.body,
       userId: req.userId,
       status: "pending",
     }).save();
-    const adminUsers = await userModel.find({ isAdmin: true });
+    const admins = await userModel.find({ isAdmin: true }).select("_id");
     await userModel.updateMany(
-      { _id: { $in: adminUsers.map((admin) => admin._id) } },
+      { _id: { $in: admins.map((admin) => admin._id) } },
       {
         $push: {
-          notification: {
+          notifications: {
             type: "apply-doctor-request",
             message: `${newDoctor.firstName} ${newDoctor.lastName} has applied for a doctor account`,
+            onClickPath: "/admin/doctors",
             data: {
               doctorId: newDoctor._id,
               name: `${newDoctor.firstName} ${newDoctor.lastName}`,
-              onClickPath: "/admin/doctors",
             },
           },
         },
       }
     );
-    res.status(201).send({
-      success: true,
-      message: "Doctor Account Applied SUccessfully",
-    });
+    res
+      .status(201)
+      .send({ success: true, message: "Application submitted successfully" });
   } catch (error) {
-    console.log(error);
-    res.status(500).send({
-      success: false,
-      error,
-      message: "Error WHile Applying For Doctor",
-    });
+    next(error);
   }
 };
 
-// move unread notifications to read
-const getAllNotificationController = async (req, res) => {
+const getAllNotificationController = async (req, res, next) => {
   try {
     const user = await userModel.findById(req.userId);
     if (!user) {
       return res
-        .status(200)
-        .send({ message: "user not found", success: false });
+        .status(404)
+        .send({ success: false, message: "User not found" });
     }
-    user.seennotification = [...user.seennotification, ...user.notification];
-    user.notification = [];
+    user.seenNotifications = [...user.seenNotifications, ...user.notifications];
+    user.notifications = [];
     const updatedUser = await user.save();
     updatedUser.password = undefined;
     res.status(200).send({
       success: true,
-      message: "all notification marked as read",
+      message: "All notifications marked as read",
       data: updatedUser,
     });
   } catch (error) {
-    console.log(error);
-    res.status(500).send({
-      message: "Error in notification",
-      success: false,
-      error,
-    });
+    next(error);
   }
 };
 
-const deleteAllNotificationController = async (req, res) => {
+const deleteAllNotificationController = async (req, res, next) => {
   try {
     const user = await userModel.findById(req.userId);
     if (!user) {
       return res
-        .status(200)
-        .send({ message: "user not found", success: false });
+        .status(404)
+        .send({ success: false, message: "User not found" });
     }
-    user.notification = [];
-    user.seennotification = [];
+    user.notifications = [];
+    user.seenNotifications = [];
     const updatedUser = await user.save();
     updatedUser.password = undefined;
     res.status(200).send({
       success: true,
-      message: "Notifications Deleted successfully",
+      message: "Notifications deleted successfully",
       data: updatedUser,
     });
   } catch (error) {
-    console.log(error);
-    res.status(500).send({
-      success: false,
-      message: "unable to delete all notifications",
-      error,
-    });
+    next(error);
   }
 };
 
 // only approved doctors are bookable
-const getAllDoctorsController = async (req, res) => {
+const getAllDoctorsController = async (req, res, next) => {
   try {
     const doctors = await doctorModel.find({ status: "approved" });
     res.status(200).send({
       success: true,
-      message: "Doctors List Fetched Successfully",
+      message: "Doctors fetched successfully",
       data: doctors,
     });
   } catch (error) {
-    console.log(error);
-    res
-      .status(500)
-      .send({ success: false, error, message: "Error While Fetching Doctors" });
+    next(error);
   }
 };
 
-// shared by bookingAvailability and bookAppointment
+// shared by the availability check and the booking itself
 const checkAvailability = async (req) => {
   const { doctorId, date, time } = req.body;
   const slot = parseSlot(date, time);
@@ -223,32 +196,33 @@ const checkAvailability = async (req) => {
   return { ok: true, slot, doctor };
 };
 
-const bookingAvailabilityController = async (req, res) => {
+const bookingAvailabilityController = async (req, res, next) => {
   try {
     const result = await checkAvailability(req);
+    // a taken slot is a valid answer, not a request failure
     res.status(200).send({
-      success: result.ok,
+      success: true,
+      available: result.ok,
       message: result.ok ? "Slot available" : result.message,
     });
   } catch (error) {
-    console.log(error);
-    res
-      .status(500)
-      .send({ success: false, error, message: "Error In Booking Availbility" });
+    next(error);
   }
 };
 
-const bookAppointmentController = async (req, res) => {
+const bookAppointmentController = async (req, res, next) => {
   try {
     const result = await checkAvailability(req);
     if (!result.ok) {
-      return res.status(200).send({ success: false, message: result.message });
+      return res.status(409).send({ success: false, message: result.message });
     }
     const user = await userModel.findById(req.userId).select("-password");
     if (!user) {
-      return res.status(200).send({ success: false, message: "user not found" });
+      return res
+        .status(404)
+        .send({ success: false, message: "User not found" });
     }
-    const appointment = await appointmentModel({
+    const appointment = await new appointmentModel({
       userId: req.userId,
       doctorId: result.doctor._id,
       doctorInfo: result.doctor.toObject(),
@@ -260,44 +234,34 @@ const bookAppointmentController = async (req, res) => {
     }).save();
     await userModel.findByIdAndUpdate(result.doctor.userId, {
       $push: {
-        notification: {
-          type: "New-appointment-request",
+        notifications: {
+          type: "new-appointment-request",
           message: `A new appointment request from ${user.name}`,
-          data: {
-            appointmentId: appointment._id,
-            onClickPath: "/doctor/appointments",
-          },
+          onClickPath: "/doctor/appointments",
+          data: { appointmentId: appointment._id },
         },
       },
     });
     res
       .status(201)
-      .send({ success: true, message: "Appointment Book succesfully" });
+      .send({ success: true, message: "Appointment booked successfully" });
   } catch (error) {
-    console.log(error);
-    res
-      .status(500)
-      .send({ success: false, error, message: "Error While Booking" });
+    next(error);
   }
 };
 
-const userAppointmentsController = async (req, res) => {
+const userAppointmentsController = async (req, res, next) => {
   try {
     const appointments = await appointmentModel
       .find({ userId: req.userId })
       .sort({ slot: -1 });
     res.status(200).send({
       success: true,
-      message: "Users Appointments Fetch SUccessfully",
+      message: "Appointments fetched successfully",
       data: appointments,
     });
   } catch (error) {
-    console.log(error);
-    res.status(500).send({
-      success: false,
-      error,
-      message: "Error In User Appointments",
-    });
+    next(error);
   }
 };
 

@@ -10,6 +10,7 @@ import Users from "./pages/admin/Users";
 import Doctors from "./pages/admin/Doctors";
 import Profile from "./pages/doctor/Profile";
 import DoctorAppointments from "./pages/doctor/DoctorAppointments";
+import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import PublicRoute from "./components/PublicRoute";
 import { UserProvider } from "./context/UserContext";
@@ -107,6 +108,7 @@ function App() {
               </PublicRoute>
             }
           />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </UserProvider>
     </BrowserRouter>

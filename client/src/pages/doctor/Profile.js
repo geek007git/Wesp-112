@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Spin, message } from "antd";
-import http from "../../api/http";
+import http, { apiError } from "../../api/http";
 import DoctorForm from "../../components/DoctorForm";
 
 const Profile = () => {
@@ -17,7 +17,7 @@ const Profile = () => {
           message.error(res.data.message);
         }
       } catch (error) {
-        message.error("Unable to load profile");
+        message.error(apiError(error));
       } finally {
         setLoading(false);
       }
@@ -35,7 +35,7 @@ const Profile = () => {
         message.error(res.data.message);
       }
     } catch (error) {
-      message.error("Something Went Wrong");
+      message.error(apiError(error));
     }
   };
 

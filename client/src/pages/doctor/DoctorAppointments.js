@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Table, Tag, message } from "antd";
-import http from "../../api/http";
+import http, { apiError } from "../../api/http";
 
 const statusColor = {
   pending: "gold",
@@ -21,7 +21,7 @@ const DoctorAppointments = () => {
         message.error(res.data.message);
       }
     } catch (error) {
-      message.error("Unable to load appointments");
+      message.error(apiError(error));
     } finally {
       setLoading(false);
     }
@@ -34,7 +34,7 @@ const DoctorAppointments = () => {
   const handleStatus = async (record, status) => {
     try {
       const res = await http.post("/doctor/update-status", {
-        appointmentsId: record._id,
+        appointmentId: record._id,
         status,
       });
       if (res.data.success) {
@@ -44,7 +44,7 @@ const DoctorAppointments = () => {
         message.error(res.data.message);
       }
     } catch (error) {
-      message.error("Something Went Wrong");
+      message.error(apiError(error));
     }
   };
 

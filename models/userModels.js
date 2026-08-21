@@ -1,19 +1,33 @@
 const mongoose = require("mongoose");
 
+const notificationSchema = new mongoose.Schema(
+  {
+    type: { type: String, required: true },
+    message: { type: String, required: true },
+    onClickPath: { type: String },
+    data: { type: Object },
+  },
+  { _id: false, timestamps: { createdAt: true, updatedAt: false } }
+);
+
 const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "name is require"],
+      required: [true, "name is required"],
+      trim: true,
     },
     email: {
       type: String,
-      required: [true, "email is require"],
+      required: [true, "email is required"],
       unique: true,
+      lowercase: true,
+      trim: true,
     },
+    // stores the bcrypt hash; length rules live in the route validators
     password: {
       type: String,
-      required: [true, "password is require"],
+      required: [true, "password is required"],
     },
     isAdmin: {
       type: Boolean,
@@ -23,12 +37,12 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    notification: {
-      type: Array,
+    notifications: {
+      type: [notificationSchema],
       default: [],
     },
-    seennotification: {
-      type: Array,
+    seenNotifications: {
+      type: [notificationSchema],
       default: [],
     },
   },

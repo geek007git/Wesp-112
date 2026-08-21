@@ -1,45 +1,36 @@
 const doctorModel = require("../models/doctorModel");
 const userModel = require("../models/userModels");
 
-const getAllUsersController = async (req, res) => {
+const getAllUsersController = async (req, res, next) => {
   try {
     const users = await userModel.find({}).select("-password");
-    res
-      .status(200)
-      .send({ success: true, message: "users data list", data: users });
+    res.status(200).send({
+      success: true,
+      message: "Users fetched successfully",
+      data: users,
+    });
   } catch (error) {
-    console.log(error);
-    res
-      .status(500)
-      .send({ success: false, message: "eror while fetching users", error });
+    next(error);
   }
 };
 
-const getAllDoctorsController = async (req, res) => {
+const getAllDoctorsController = async (req, res, next) => {
   try {
-    const doctors = await doctorModel.find({});
+    const doctors = await doctorModel.find({}).sort({ createdAt: -1 });
     res.status(200).send({
       success: true,
-      message: "Doctors Data list",
+      message: "Doctors fetched successfully",
       data: doctors,
     });
   } catch (error) {
-    console.log(error);
-    res
-      .status(500)
-      .send({ success: false, message: "error while getting doctors data", error });
+    next(error);
   }
 };
 
-// approve / reject a doctor application; flips the user's isDoctor flag
-const changeAccountStatusController = async (req, res) => {
+// approve or reject an application; keeps the user's isDoctor flag in step
+const changeAccountStatusController = async (req, res, next) => {
   try {
     const { doctorId, status } = req.body;
-    if (!["approved", "rejected", "pending"].includes(status)) {
-      return res
-        .status(200)
-        .send({ success: false, message: "invalid status" });
-    }
     const doctor = await doctorModel.findByIdAndUpdate(
       doctorId,
       { status },
@@ -47,31 +38,27 @@ const changeAccountStatusController = async (req, res) => {
     );
     if (!doctor) {
       return res
-        .status(200)
-        .send({ success: false, message: "doctor not found" });
+        .status(404)
+        .send({ success: false, message: "Doctor not found" });
     }
-    const user = await userModel.findById(doctor.userId);
-    if (user) {
-      user.notification.push({
-        type: "doctor-account-request-updated",
-        message: `Your Doctor Account Request Has ${status}`,
-        onClickPath: "/notification",
-      });
-      user.isDoctor = status === "approved";
-      await user.save();
-    }
+    await userModel.findByIdAndUpdate(doctor.userId, {
+      isDoctor: status === "approved",
+      $push: {
+        notifications: {
+          type: "doctor-account-request-updated",
+          message: `Your doctor account request has been ${status}`,
+          onClickPath: "/notification",
+          data: { doctorId: doctor._id },
+        },
+      },
+    });
     res.status(200).send({
       success: true,
-      message: "Account Status Updated",
+      message: `Doctor account ${status}`,
       data: doctor,
     });
   } catch (error) {
-    console.log(error);
-    res.status(500).send({
-      success: false,
-      message: "Eror in Account Status",
-      error,
-    });
+    next(error);
   }
 };
 

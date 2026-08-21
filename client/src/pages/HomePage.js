@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Col, Row, Empty, Spin, message } from "antd";
 import { useNavigate } from "react-router-dom";
-import http from "../api/http";
+import http, { apiError } from "../api/http";
 import DoctorCard from "../components/DoctorCard";
 
 const HomePage = () => {
@@ -16,7 +16,7 @@ const HomePage = () => {
         setDoctors(res.data.data);
       }
     } catch (error) {
-      message.error("Unable to load doctors");
+      message.error(apiError(error));
     } finally {
       setLoading(false);
     }
@@ -28,7 +28,7 @@ const HomePage = () => {
 
   return (
     <>
-      <h3 className="text-center">Home Page</h3>
+      <h3 className="text-center">Book an appointment</h3>
       {loading ? (
         <div style={{ display: "grid", placeItems: "center", padding: 40 }}>
           <Spin />

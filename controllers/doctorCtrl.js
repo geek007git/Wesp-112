@@ -3,30 +3,27 @@ const appointmentModel = require("../models/appointmentModel");
 const userModel = require("../models/userModels");
 
 // the logged-in doctor's own profile
-const getDoctorInfoController = async (req, res) => {
+const getDoctorInfoController = async (req, res, next) => {
   try {
     const doctor = await doctorModel.findOne({ userId: req.userId });
     if (!doctor) {
       return res
-        .status(200)
-        .send({ success: false, message: "doctor profile not found" });
+        .status(404)
+        .send({ success: false, message: "Doctor profile not found" });
     }
     res.status(200).send({
       success: true,
-      message: "doctor data fetch success",
+      message: "Doctor profile fetched successfully",
       data: doctor,
     });
   } catch (error) {
-    console.log(error);
-    res
-      .status(500)
-      .send({ success: false, error, message: "Error in Fetching Doctor Details" });
+    next(error);
   }
 };
 
-const updateProfileController = async (req, res) => {
+const updateProfileController = async (req, res, next) => {
   try {
-    // status is only changeable by an admin
+    // status, userId and _id are not the doctor's to change
     const { status, userId, _id, ...updatable } = req.body;
     const doctor = await doctorModel.findOneAndUpdate(
       { userId: req.userId },
@@ -35,112 +32,94 @@ const updateProfileController = async (req, res) => {
     );
     if (!doctor) {
       return res
-        .status(200)
-        .send({ success: false, message: "doctor profile not found" });
+        .status(404)
+        .send({ success: false, message: "Doctor profile not found" });
     }
     res.status(200).send({
       success: true,
-      message: "Doctor Profile Updated",
+      message: "Profile updated successfully",
       data: doctor,
     });
   } catch (error) {
-    console.log(error);
-    res
-      .status(500)
-      .send({ success: false, error, message: "Doctor Profile Upadte issue" });
+    next(error);
   }
 };
 
-// public: a single doctor, used by the booking page
-const getDoctorByIdController = async (req, res) => {
+// a single approved doctor, used by the booking page
+const getDoctorByIdController = async (req, res, next) => {
   try {
     const doctor = await doctorModel.findById(req.params.doctorId);
     if (!doctor || doctor.status !== "approved") {
       return res
-        .status(200)
-        .send({ success: false, message: "doctor not found" });
+        .status(404)
+        .send({ success: false, message: "Doctor not found" });
     }
-    res
-      .status(200)
-      .send({ success: true, message: "Single Doc Info Fetched", data: doctor });
-  } catch (error) {
-    console.log(error);
-    res.status(500).send({
-      success: false,
-      error,
-      message: "Error in Single doctor info",
+    res.status(200).send({
+      success: true,
+      message: "Doctor fetched successfully",
+      data: doctor,
     });
+  } catch (error) {
+    next(error);
   }
 };
 
-const doctorAppointmentsController = async (req, res) => {
+const doctorAppointmentsController = async (req, res, next) => {
   try {
     const doctor = await doctorModel.findOne({ userId: req.userId });
     if (!doctor) {
       return res
-        .status(200)
-        .send({ success: false, message: "doctor profile not found" });
+        .status(404)
+        .send({ success: false, message: "Doctor profile not found" });
     }
     const appointments = await appointmentModel
       .find({ doctorId: doctor._id })
       .sort({ slot: -1 });
     res.status(200).send({
       success: true,
-      message: "Doctor Appointments fetch Successfully",
+      message: "Appointments fetched successfully",
       data: appointments,
     });
   } catch (error) {
-    console.log(error);
-    res
-      .status(500)
-      .send({ success: false, error, message: "Error In Doctor Appointments" });
+    next(error);
   }
 };
 
-// doctor approves / rejects an appointment, patient gets notified
-const updateStatusController = async (req, res) => {
+// doctor approves or rejects an appointment; the patient is notified
+const updateStatusController = async (req, res, next) => {
   try {
-    const { appointmentsId, status } = req.body;
-    if (!["approved", "rejected"].includes(status)) {
-      return res
-        .status(200)
-        .send({ success: false, message: "invalid status" });
-    }
+    const { appointmentId, status } = req.body;
     const doctor = await doctorModel.findOne({ userId: req.userId });
     if (!doctor) {
       return res
-        .status(200)
-        .send({ success: false, message: "doctor profile not found" });
+        .status(404)
+        .send({ success: false, message: "Doctor profile not found" });
     }
     const appointment = await appointmentModel.findOneAndUpdate(
-      { _id: appointmentsId, doctorId: doctor._id },
+      { _id: appointmentId, doctorId: doctor._id },
       { status },
       { new: true }
     );
     if (!appointment) {
       return res
-        .status(200)
-        .send({ success: false, message: "appointment not found" });
+        .status(404)
+        .send({ success: false, message: "Appointment not found" });
     }
     await userModel.findByIdAndUpdate(appointment.userId, {
       $push: {
-        notification: {
-          type: "status-updated",
-          message: `your appointment has been ${status}`,
-          onCLickPath: "/appointments",
+        notifications: {
+          type: "appointment-status-updated",
+          message: `Your appointment has been ${status}`,
+          onClickPath: "/appointments",
+          data: { appointmentId: appointment._id },
         },
       },
     });
     res
       .status(200)
-      .send({ success: true, message: "Appointment Status Updated" });
+      .send({ success: true, message: `Appointment ${status}` });
   } catch (error) {
-    console.log(error);
-    res.status(500).send({
-      success: false,
-      error,
-      message: "Error In Update Status",
-    });
+    next(error);
   }
 };
 

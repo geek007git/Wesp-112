@@ -65,7 +65,7 @@ const Layout = ({ children }) => {
           <div className="header">
             <div className="header-content">
               <Badge
-                count={user && user.notification ? user.notification.length : 0}
+                count={user && user.notifications ? user.notifications.length : 0}
                 onClick={() => navigate("/notification")}
               >
                 <span className="bell">🔔</span>
