@@ -25,6 +25,7 @@ app.get("/api/v1/health", (req, res) =>
 app.use("/api/v1/user", require("./routes/userRoutes"));
 app.use("/api/v1/admin", require("./routes/adminRoutes"));
 app.use("/api/v1/doctor", require("./routes/doctorRoutes"));
+app.use("/api/v1/chat", require("./routes/chatRoutes"));
 
 // unmatched routes and anything a controller forwards with next(error)
 app.use(notFound);

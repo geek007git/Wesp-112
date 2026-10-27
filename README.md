@@ -10,6 +10,12 @@ act on it next.
 
 ## Features
 
+- **MediMate AI assistant**: authenticated contextual chat using Mistral when
+  configured, with guided fallback replies and doctor/appointment navigation.
+  It currently provides guidance; tool execution and booking from chat are not
+  implemented. See the [project context](CONTEXT.md),
+  [engineering guide](ENGINEERING.md), and [detailed AI report](AGENTIC_AI_REPORT.md).
+
 - **JWT authentication** — register, login, and a `getUserData` endpoint the
   client uses to build its user context. Passwords are bcrypt-hashed, and login
   answers identically for an unknown email and a wrong password so the endpoint
@@ -95,6 +101,7 @@ header; "admin" additionally requires `isAdmin`.
 | Method | Route | Auth | Purpose |
 | --- | --- | --- | --- |
 | GET | `/health` | public | liveness check |
+| POST | `/chat/message` | token | contextual assistant reply; AI or guided mode |
 | POST | `/user/register` | public | create an account |
 | POST | `/user/login` | public | exchange credentials for a JWT |
 | POST | `/user/getUserData` | token | current user, minus the password |

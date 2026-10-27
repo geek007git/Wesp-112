@@ -2,6 +2,7 @@ import React from "react";
 import { Badge, message } from "antd";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useUser } from "../context/UserContext";
+import Chatbot from "./Chatbot";
 import "../styles/LayoutStyles.css";
 
 const userMenu = [
@@ -76,6 +77,7 @@ const Layout = ({ children }) => {
           <div className="body">{children}</div>
         </div>
       </div>
+      <Chatbot />
     </div>
   );
 };

@@ -24,6 +24,7 @@
     "url": "https://github.com/geek007git/Wesp-112.git"
   },
   "dependencies": {
+    "@mistralai/mistralai": "^3.3.0",
     "bcryptjs": "^2.4.3",
     "colors": "^1.4.0",
     "concurrently": "^7.6.0",
