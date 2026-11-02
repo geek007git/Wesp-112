@@ -4,6 +4,7 @@
   "description": "MERN doctor appointment system: doctor applications with admin approval, appointment booking with slot availability checks, and in-app notifications.",
   "main": "server.js",
   "scripts": {
+    "build": "npm run build --prefix client",
     "start": "node server.js",
     "server": "nodemon server.js",
     "client": "npm start --prefix ./client",

@@ -125,6 +125,33 @@ Errors use HTTP status codes — 400 validation, 401 auth, 403 not an admin, 404
 missing, 409 conflict (duplicate email, taken slot), 500 unexpected — with a
 `{ success: false, message }` body throughout.
 
+## Production deployment
+
+`vercel.json` builds the React client and routes `/api/*` to the Express Node
+function in `api/index.js`. All other application paths fall back to React, so
+refreshing `/login` or an appointment page works. Deploy from the repository root,
+with no dashboard Root Directory override.
+
+Configure these server environment variables in the hosting dashboard:
+
+- `MONGO_URL`: hosted MongoDB connection URI, including the application database.
+- `JWT_SECRET`: a cryptographically random signing secret; keep it stable across deploys.
+- `NODE_ENV=production` and `NODE_MODE=production`.
+- `MISTRAL_API_KEY`: optional provider key for AI replies. Without it, the assistant
+  uses guided replies. `MISTRAL_MODEL` defaults to `mistral-small-latest`.
+
+Keep all secrets out of Git and out of `REACT_APP_*` variables, which are public.
+MongoDB must allow connections from the chosen host. `/api/v1/health` returns 200
+only after a database connection succeeds and 503 when the database is unavailable.
+
+Before a demo, verify registration, login, doctor application/admin approval,
+booking, and the assistant against the live URL. A successful frontend build
+alone does not verify these database-dependent flows.
+
+For a conventional Node host, run `npm ci`, `npm ci --prefix client`,
+`npm run build`, then `npm start`. With `NODE_ENV=production`, Express also serves
+the React build on the same origin.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
