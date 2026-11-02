@@ -21,6 +21,7 @@ const adminMenu = [
   { name: "Home", path: "/", icon: "🏠" },
   { name: "Users", path: "/admin/users", icon: "👥" },
   { name: "Doctors", path: "/admin/doctors", icon: "🩺" },
+  { name: "Demo Data", path: "/admin/demo-data", icon: "✨" },
 ];
 
 const Layout = ({ children }) => {

@@ -8,6 +8,7 @@ import Appointments from "./pages/Appointments";
 import BookingPage from "./pages/BookingPage";
 import Users from "./pages/admin/Users";
 import Doctors from "./pages/admin/Doctors";
+import DemoData from "./pages/admin/DemoData";
 import Profile from "./pages/doctor/Profile";
 import DoctorAppointments from "./pages/doctor/DoctorAppointments";
 import NotFound from "./pages/NotFound";
@@ -89,6 +90,14 @@ function App() {
             element={
               <ProtectedRoute requireAdmin>
                 <Doctors />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/demo-data"
+            element={
+              <ProtectedRoute requireAdmin>
+                <DemoData />
               </ProtectedRoute>
             }
           />

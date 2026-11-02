@@ -8,6 +8,7 @@ const {
   getAllDoctorsController,
   changeAccountStatusController,
 } = require("../controllers/adminCtrl");
+const { adminSeedDemoController } = require("../controllers/demoCtrl");
 
 const router = express.Router();
 
@@ -19,6 +20,9 @@ router.get("/getAllUsers", getAllUsersController);
 
 //ALL DOCTORS, ANY STATUS || GET
 router.get("/getAllDoctors", getAllDoctorsController);
+
+// Admin-only, idempotent demo data setup for presentations.
+router.post("/seed-demo-data", adminSeedDemoController);
 
 //APPROVE / REJECT APPLICATION || POST
 router.post(

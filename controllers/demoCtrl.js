@@ -70,7 +70,7 @@ const ensureAppointment = (user, doctor, offsetDays, hour, status) => {
 };
 
 const seedDemoController = async (req, res, next) => {
-  if (process.env.DEMO_SEED_ENABLED !== "true") {
+  if (!req.adminDemoSeed && process.env.DEMO_SEED_ENABLED !== "true") {
     return res.status(404).send({ success: false, message: "Route not found" });
   }
 
@@ -183,4 +183,9 @@ const seedDemoController = async (req, res, next) => {
   }
 };
 
-module.exports = { seedDemoController };
+const adminSeedDemoController = (req, res, next) => {
+  req.adminDemoSeed = true;
+  return seedDemoController(req, res, next);
+};
+
+module.exports = { seedDemoController, adminSeedDemoController };
