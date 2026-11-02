@@ -49,6 +49,7 @@ app.use("/api/v1/user", require("./routes/userRoutes"));
 app.use("/api/v1/admin", require("./routes/adminRoutes"));
 app.use("/api/v1/doctor", require("./routes/doctorRoutes"));
 app.use("/api/v1/chat", require("./routes/chatRoutes"));
+app.use("/api/v1/demo", require("./routes/demoRoutes"));
 
 // Keep unknown API paths out of the React history fallback.
 app.use("/api", notFound);
