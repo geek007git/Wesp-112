@@ -21,6 +21,7 @@
 .chatbot-row.user { justify-content: flex-end; }
 .chatbot-mini-avatar { width: 25px; height: 25px; border: 1px solid #ccdedb; border-radius: 9px; font-size: 12px; }
 .chatbot-bubble { max-width: 79%; padding: 11px 13px; border-radius: 16px 16px 16px 5px; color: #334155; background: #fff; box-shadow: 0 2px 7px rgba(15,23,42,.06); font-size: 13px; line-height: 1.5; white-space: pre-wrap; }
+.chatbot-ai-badge { margin-top: 6px; padding-top: 4px; border-top: 1px solid #e2e8f0; font-size: 10px; color: #0d9488; font-weight: 600; display: flex; align-items: center; gap: 4px; }
 .chatbot-row.user .chatbot-bubble { color: #fff; background: #0f766e; border-radius: 16px 16px 5px 16px; }
 .chatbot-suggestions { padding: 3px 14px 10px 46px; display: flex; gap: 6px; flex-wrap: wrap; }
 .chatbot-suggestions button { border: 1px solid #99cbc4; border-radius: 999px; padding: 6px 10px; color: #0f766e; background: #fff; font-size: 11px; font-weight: 600; cursor: pointer; }

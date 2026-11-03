@@ -138,7 +138,7 @@ Configure these server environment variables in the hosting dashboard:
 - `JWT_SECRET`: a cryptographically random signing secret; keep it stable across deploys.
 - `NODE_ENV=production` and `NODE_MODE=production`.
 - `MISTRAL_API_KEY`: optional provider key for AI replies. Without it, the assistant
-  uses guided replies. `MISTRAL_MODEL` defaults to `mistral-small-latest`.
+  uses guided replies. `MISTRAL_MODEL` defaults to `mistral-medium-latest`.
 
 Keep all secrets out of Git and out of `REACT_APP_*` variables, which are public.
 MongoDB must allow connections from the chosen host. `/api/v1/health` returns 200
