@@ -69,6 +69,20 @@ once in Mongo:
 db.users.updateOne({ email: "you@example.com" }, { $set: { isAdmin: true } })
 ```
 
+### Demo workspace
+
+After signing in as an administrator, open **Demo Data** in the sidebar and
+choose **Create demo data**. The idempotent seeder adds six approved doctors,
+two patients, four appointments, and notifications. The doctor directory
+includes cardiology, dermatology, pediatrics, general medicine, orthopedics,
+and neurology examples. The page displays the demo sign-in emails and shared
+password after setup. These fixed credentials are for local presentations only.
+
+To bootstrap a local presentation without an existing admin, set
+`DEMO_SEED_ENABLED=true` in `.env`, start the API, and call
+`POST /api/v1/demo/seed` once. This route is disabled by default. Turn it off
+again before exposing the app beyond a trusted demo environment.
+
 ### Tests
 
 ```bash

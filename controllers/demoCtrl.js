@@ -49,23 +49,39 @@ const ensureDoctor = (user, details) =>
     { new: true, upsert: true, runValidators: true, setDefaultsOnInsert: true }
   );
 
-const ensureAppointment = (user, doctor, offsetDays, hour, status) => {
+const ensureAppointment = async (user, doctor, offsetDays, hour, status, demoKey) => {
   const { date, time, slot } = toDateParts(offsetDays, hour);
+  const values = {
+    userId: user._id,
+    doctorId: doctor._id,
+    doctorInfo: doctor.toObject(),
+    userInfo: publicUser(user),
+    date,
+    time,
+    slot,
+    status,
+    demoKey,
+  };
+
+  // Adopt older seeded appointments once, then keep one stable record per demo slot.
+  const legacyAppointment = await appointmentModel.findOne({
+    userId: user._id,
+    doctorId: doctor._id,
+    time,
+    demoKey: { $exists: false },
+  });
+  if (legacyAppointment) {
+    return appointmentModel.findByIdAndUpdate(
+      legacyAppointment._id,
+      { $set: values },
+      { new: true, runValidators: true }
+    );
+  }
+
   return appointmentModel.findOneAndUpdate(
-    { userId: user._id, doctorId: doctor._id, slot },
-    {
-      $setOnInsert: {
-        userId: user._id,
-        doctorId: doctor._id,
-        doctorInfo: doctor.toObject(),
-        userInfo: publicUser(user),
-        date,
-        time,
-        slot,
-        status,
-      },
-    },
-    { new: true, upsert: true, setDefaultsOnInsert: true }
+    { demoKey },
+    { $set: values },
+    { new: true, upsert: true, runValidators: true, setDefaultsOnInsert: true }
   );
 };
 
@@ -97,8 +113,23 @@ const seedDemoController = async (req, res, next) => {
       email: "nisha@medimate.demo",
       isDoctor: true,
     });
+    const drAishaUser = await ensureUser({
+      name: "Dr. Aisha Rao",
+      email: "aisha@medimate.demo",
+      isDoctor: true,
+    });
+    const drKaranUser = await ensureUser({
+      name: "Dr. Karan Iyer",
+      email: "karan@medimate.demo",
+      isDoctor: true,
+    });
+    const drLeenaUser = await ensureUser({
+      name: "Dr. Leena Joseph",
+      email: "leena@medimate.demo",
+      isDoctor: true,
+    });
 
-    const [drMaya, drRahul, drNisha] = await Promise.all([
+    const [drMaya, drRahul, drNisha, drAisha, drKaran, drLeena] = await Promise.all([
       ensureDoctor(drMayaUser, {
         firstName: "Maya",
         lastName: "Patel",
@@ -132,13 +163,46 @@ const seedDemoController = async (req, res, next) => {
         feesPerConsultation: 800,
         timings: ["09:00", "16:00"],
       }),
+      ensureDoctor(drAishaUser, {
+        firstName: "Aisha",
+        lastName: "Rao",
+        phone: "+91 98765 10004",
+        website: "https://medimate.demo/doctors/aisha-rao",
+        address: "Jayanagar, Bengaluru",
+        specialization: "General Physician",
+        experience: "8 years",
+        feesPerConsultation: 500,
+        timings: ["08:00", "16:00"],
+      }),
+      ensureDoctor(drKaranUser, {
+        firstName: "Karan",
+        lastName: "Iyer",
+        phone: "+91 98765 10005",
+        website: "https://medimate.demo/doctors/karan-iyer",
+        address: "Whitefield, Bengaluru",
+        specialization: "Orthopedic Surgeon",
+        experience: "14 years",
+        feesPerConsultation: 1100,
+        timings: ["10:00", "18:00"],
+      }),
+      ensureDoctor(drLeenaUser, {
+        firstName: "Leena",
+        lastName: "Joseph",
+        phone: "+91 98765 10006",
+        website: "https://medimate.demo/doctors/leena-joseph",
+        address: "Indiranagar, Bengaluru",
+        specialization: "Neurologist",
+        experience: "10 years",
+        feesPerConsultation: 1000,
+        timings: ["09:00", "17:00"],
+      }),
     ]);
 
     const appointments = await Promise.all([
-      ensureAppointment(priya, drMaya, 2, 10, "approved"),
-      ensureAppointment(priya, drRahul, 4, 11, "pending"),
-      ensureAppointment(arun, drMaya, 3, 14, "pending"),
-      ensureAppointment(arun, drNisha, 5, 10, "approved"),
+      ensureAppointment(priya, drMaya, 2, 10, "approved", "priya-maya"),
+      ensureAppointment(priya, drRahul, 4, 11, "pending", "priya-rahul"),
+      ensureAppointment(arun, drMaya, 3, 14, "pending", "arun-maya"),
+      ensureAppointment(arun, drNisha, 5, 10, "approved", "arun-nisha"),
     ]);
 
     await Promise.all([
@@ -170,11 +234,19 @@ const seedDemoController = async (req, res, next) => {
 
     res.status(201).send({
       success: true,
-      message: "Demo accounts, doctors, and appointments are ready",
+      message: "Demo accounts, six approved doctors, and appointments are ready",
       accounts: {
         admin: admin.email,
         patient: priya.email,
         doctor: drMayaUser.email,
+        doctors: [
+          drMayaUser.email,
+          drRahulUser.email,
+          drNishaUser.email,
+          drAishaUser.email,
+          drKaranUser.email,
+          drLeenaUser.email,
+        ],
         password: DEMO_PASSWORD,
       },
     });

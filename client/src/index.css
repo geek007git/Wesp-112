@@ -1,5 +1,36 @@
-* {
-  padding: 0;
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
   margin: 0;
-  box-sizing: border-box;
+  color: #203b35;
+  background: #f1f3ed;
+  font-family: "Aptos", "Segoe UI", Arial, sans-serif;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, textarea { font: inherit; }
+button { -webkit-tap-highlight-color: transparent; }
+::selection { color: #193c31; background: #d9e7bd; }
+
+.text-center { text-align: center; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; padding: 9px 14px; border: 0; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.15s ease, transform 0.15s ease; }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-primary { color: #fff; background: #315f4f; }
+.btn-primary:hover:not(:disabled) { background: #244d3e; transform: translateY(-1px); }
+.btn-dark { color: #fff; background: #253a33; }
+.btn-dark:hover:not(:disabled) { background: #162f27; }
+.w-100 { width: 100%; }
+.mt-2 { margin-top: 8px; }
+.mt-3 { margin-top: 12px; }
+.m-2 { margin: 8px; }
+.p-3 { padding: 16px; }
+.d-flex { display: flex; }
+.flex-column { flex-direction: column; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }

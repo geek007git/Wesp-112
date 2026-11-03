@@ -35,6 +35,12 @@ const appointmentSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    // Stable key for the presentation seed; regular appointments leave this unset.
+    demoKey: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
     status: {
       type: String,
       enum: ["pending", "approved", "rejected"],
