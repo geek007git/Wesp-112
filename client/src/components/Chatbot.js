@@ -43,7 +43,12 @@ const Chatbot = () => {
       });
       setMessages((current) => [
         ...current,
-        { role: "assistant", content: res.data.reply },
+        {
+          role: "assistant",
+          content: res.data.reply,
+          mode: res.data.mode,
+          model: res.data.model,
+        },
       ]);
     } catch (error) {
       setMessages((current) => [
@@ -77,7 +82,7 @@ const Chatbot = () => {
             <div className="chatbot-avatar" aria-hidden="true">✦</div>
             <div>
               <strong>MediMate</strong>
-              <span><i /> AI appointment assistant</span>
+              <span><i /> AI assistant &bull; Mistral AI</span>
             </div>
             <button className="chatbot-close" onClick={() => setOpen(false)} aria-label="Close assistant">×</button>
           </header>
@@ -87,7 +92,14 @@ const Chatbot = () => {
             {messages.map((message, index) => (
               <div key={`${message.role}-${index}`} className={`chatbot-row ${message.role}`}>
                 {message.role === "assistant" && <div className="chatbot-mini-avatar">✦</div>}
-                <div className="chatbot-bubble">{message.content}</div>
+                <div className="chatbot-bubble">
+                  {message.content}
+                  {message.role === "assistant" && message.mode === "ai" && (
+                    <div className="chatbot-ai-badge">
+                      <span>✦ Mistral AI ({message.model || "mistral-medium-latest"})</span>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
             {loading && (
@@ -131,7 +143,7 @@ const Chatbot = () => {
         aria-expanded={open}
       >
         <span className="launcher-icon">{open ? "×" : "✦"}</span>
-        {!open && <span className="launcher-label"><strong>Ask MediMate</strong><small>AI appointment assistant</small></span>}
+        {!open && <span className="launcher-label"><strong>Ask MediMate</strong><small>Mistral AI assistant</small></span>}
       </button>
     </div>
   );

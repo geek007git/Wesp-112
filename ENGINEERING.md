@@ -63,7 +63,7 @@ Database reads run concurrently:
 
 The appointment query selects the embedded doctor snapshot, but only its name enters the model summary. Avoid expanding the provider payload to full account or appointment documents.
 
-The prompt asks for replies under 140 words. The provider call uses temperature 0.3 and `maxTokens: 300`; there is no post-generation word-count enforcement. The default model identifier is `mistral-small-latest`, configurable through the environment.
+The prompt asks for replies under 140 words. The provider call uses temperature 0.3 and `maxTokens: 300`; there is no post-generation word-count enforcement. The default model identifier is `mistral-medium-latest`, configurable through the environment.
 
 ## Runtime configuration
 
